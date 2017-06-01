@@ -1,2 +1,2 @@
-rootProject.name = 'ktlint-guiced'
+rootProject.name = 'kotlin-guiced'
 rootProject.buildFileName = "build.gradle.kts"
