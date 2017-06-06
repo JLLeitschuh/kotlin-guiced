@@ -1,5 +1,7 @@
 # Kotlin Guiced
 
+[ ![Download](https://api.bintray.com/packages/jlleitschuh/maven-artifacts/kotlin-guiced/images/download.svg) ](https://bintray.com/jlleitschuh/maven-artifacts/kotlin-guiced/_latestVersion)
+
 A Kotlin API wrapper over the [Google Guice](https://github.com/google/guice) Dependency Injection library.
 
 This library aims to encourage the use of Guice with Kotlin by simplifying the Guice API so it is more
