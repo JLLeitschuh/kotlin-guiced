@@ -1,4 +1,5 @@
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.bundling.Jar
 
 buildscript {
     repositories {
@@ -13,31 +14,40 @@ buildscript {
         classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3")
     }
 }
+apply {
+    plugin("com.jfrog.bintray")
+    plugin("maven-publish")
+}
+val PUBLISHED_CONFIGURATION_NAME = "published"
 
 allprojects {
-    apply {
-        plugin("com.jfrog.bintray")
-    }
-    version = "0.0.1"
+    version = "0.0.2"
     group = "org.jlleitschuh.guice"
-    bintray {
-        user = properties["bintray.publish.user"].toString()
-        key = properties["bintray.publish.key"].toString()
-        with(pkg) {
-            repo = "maven-artifacts"
-            name = "kotlin-guiced"
-            setLicenses("MIT")
-            setLabels("guice", "kotlin", "dependency injection")
-            vcsUrl = "https://github.com/JLLeitschuh/kotlin-guiced"
-            githubRepo = "https://github.com/JLLeitschuh/kotlin-guiced"
-        }
-    }
 }
+
 
 subprojects {
     apply {
+        plugin("com.jfrog.bintray")
         plugin("kotlin")
         plugin("maven-publish")
+        plugin("java-library")
+    }
+
+    val publicationName = "publication-$name"
+    bintray {
+        user = properties["bintray.publish.user"].toString()
+        key = properties["bintray.publish.key"].toString()
+        setPublications(publicationName)
+        with(pkg) {
+            repo = "maven-artifacts"
+            name = "kotlin-guiced"
+            publish = true
+            setLicenses("MIT")
+            setLabels("guice", "kotlin", "dependency injection")
+            vcsUrl = "https://github.com/JLLeitschuh/kotlin-guiced.git"
+            githubRepo = "https://github.com/JLLeitschuh/kotlin-guiced"
+        }
     }
 
     repositories {
@@ -50,17 +60,25 @@ subprojects {
         testCompile(group = "io.kotlintest", name = "kotlintest", version = "2.0.2")
     }
 
+    val sourceJarTask = task<Jar>("sourceJar") {
+        from(the<JavaPluginConvention>().sourceSets["main"].allSource)
+        classifier = "sources"
+    }
+
     afterEvaluate {
         // This ensures that the entire project's configuration has been resolved before creating a publish artifact.
         publishing {
             publications {
-                create<MavenPublication>(name) {
+                create<MavenPublication>(publicationName) {
                     from(components["java"])
+                    artifact(sourceJarTask)
                 }
             }
         }
     }
 }
+
+configurations.create(PUBLISHED_CONFIGURATION_NAME)
 
 /**
  * Retrieves or configures the [bintray][com.jfrog.bintray.gradle.BintrayExtension] project extension.
