@@ -18,15 +18,18 @@ allprojects {
     apply {
         plugin("com.jfrog.bintray")
     }
-    version = "0.0.1-SNAPSHOT"
+    version = "0.0.1"
     group = "org.jlleitschuh.guice"
     bintray {
         user = properties["bintray.publish.user"].toString()
         key = properties["bintray.publish.key"].toString()
         with(pkg) {
-            repo = "jlleitschuh"
+            repo = "maven-artifacts"
+            name = "kotlin-guiced"
             setLicenses("MIT")
+            setLabels("guice", "kotlin", "dependency injection")
             vcsUrl = "https://github.com/JLLeitschuh/kotlin-guiced"
+            githubRepo = "https://github.com/JLLeitschuh/kotlin-guiced"
         }
     }
 }
