@@ -1,4 +1,5 @@
 include ":core"
+include ":multibindings"
 
 rootProject.name = 'kotlin-guiced'
 rootProject.buildFileName = "build.gradle.kts"
