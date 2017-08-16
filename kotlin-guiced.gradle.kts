@@ -1,5 +1,6 @@
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.wrapper.Wrapper
 
 buildscript {
     repositories {
@@ -55,9 +56,9 @@ subprojects {
     }
 
     dependencies {
-        compile(kotlinModule("stdlib"))
-        compile(kotlinModule("reflect"))
-        testCompile(group = "io.kotlintest", name = "kotlintest", version = "2.0.2")
+        "compile"(kotlin("stdlib"))
+        "compile"(kotlin("reflect"))
+        "testCompile"(create(group = "io.kotlintest", name = "kotlintest", version = "2.0.2"))
     }
 
     val sourceJarTask = task<Jar>("sourceJar") {
@@ -79,6 +80,12 @@ subprojects {
 }
 
 configurations.create(PUBLISHED_CONFIGURATION_NAME)
+
+task<Wrapper>("wrapper") {
+    description = "Configure the version of gradle to download and use"
+    gradleVersion = "4.1"
+    distributionType = Wrapper.DistributionType.ALL
+}
 
 /**
  * Retrieves or configures the [bintray][com.jfrog.bintray.gradle.BintrayExtension] project extension.
