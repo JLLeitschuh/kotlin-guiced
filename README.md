@@ -1,5 +1,6 @@
 # Kotlin Guiced
 
+[![Build Status](https://travis-ci.org/JLLeitschuh/kotlin-guiced.svg?branch=master)](https://travis-ci.org/JLLeitschuh/kotlin-guiced)
 [ ![Download](https://api.bintray.com/packages/jlleitschuh/maven-artifacts/kotlin-guiced/images/download.svg) ](https://bintray.com/jlleitschuh/maven-artifacts/kotlin-guiced/_latestVersion)
 
 A Kotlin API wrapper over the [Google Guice](https://github.com/google/guice) Dependency Injection library.
