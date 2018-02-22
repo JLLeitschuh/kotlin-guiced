@@ -17,6 +17,9 @@ buildscript {
         classpath("org.junit.platform:junit-platform-gradle-plugin:1.1.0-M1")
     }
 }
+plugins {
+    jacoco
+}
 apply {
     plugin("com.jfrog.bintray")
     plugin("maven-publish")
@@ -26,8 +29,13 @@ val PUBLISHED_CONFIGURATION_NAME = "published"
 allprojects {
     version = "0.0.3"
     group = "org.jlleitschuh.guice"
+
+    repositories {
+        mavenCentral()
+    }
 }
 
+val jacocoTestResultTaskName = "jacocoJunit5TestReport"
 
 subprojects {
     apply {
@@ -36,6 +44,7 @@ subprojects {
         plugin("maven-publish")
         plugin("java-library")
         plugin("org.junit.platform.gradle.plugin")
+        plugin("jacoco")
     }
 
     val publicationName = "publication-$name"
@@ -52,10 +61,6 @@ subprojects {
             vcsUrl = "https://github.com/JLLeitschuh/kotlin-guiced.git"
             githubRepo = "https://github.com/JLLeitschuh/kotlin-guiced"
         }
-    }
-
-    repositories {
-        mavenCentral()
     }
 
     dependencies {
@@ -76,6 +81,32 @@ subprojects {
         }
     }
 
+    // Below, configure jacoco code coverage on all Junit 5 tests.
+    val junitPlatformTest: JavaExec by tasks
+
+    jacoco {
+        applyTo(junitPlatformTest)
+    }
+
+    val sourceSets = java.sourceSets
+
+    task<JacocoReport>(jacocoTestResultTaskName) {
+        group = LifecycleBasePlugin.VERIFICATION_GROUP
+        description = "Generates code coverage report for the ${junitPlatformTest.name} task."
+
+        executionData(junitPlatformTest)
+        dependsOn(junitPlatformTest)
+
+        sourceSets(sourceSets["main"])
+        sourceDirectories = files(sourceSets["main"].allSource.srcDirs)
+        classDirectories = files(sourceSets["main"].output)
+        reports {
+            html.isEnabled = true
+            xml.isEnabled = true
+            csv.isEnabled = false
+        }
+    }
+
     val sourceJarTask = task<Jar>("sourceJar") {
         from(the<JavaPluginConvention>().sourceSets["main"].allSource)
         classifier = "sources"
@@ -90,6 +121,46 @@ subprojects {
                     artifact(sourceJarTask)
                 }
             }
+        }
+    }
+}
+
+val jacocoRootReport = task<JacocoReport>("jacocoRootReport") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Generates code coverage report for all sub-projects."
+
+    val jacocoReportTasks =
+        subprojects.map { it.tasks[jacocoTestResultTaskName] as JacocoReport }
+    dependsOn(jacocoReportTasks)
+
+    val allExecutionData = jacocoReportTasks.map { it.executionData }
+    executionData(*allExecutionData.toTypedArray())
+
+    // Pre-initialize these to empty collections to prevent NPE on += call below.
+    additionalSourceDirs = files()
+    sourceDirectories = files()
+    classDirectories = files()
+
+    subprojects.forEach { testedProject ->
+        val sourceSets = testedProject.java.sourceSets
+        this@task.additionalSourceDirs += files(sourceSets["main"].allSource.srcDirs)
+        this@task.sourceDirectories += files(sourceSets["main"].allSource.srcDirs)
+        this@task.classDirectories += files(sourceSets["main"].output)
+    }
+
+    reports {
+        html.isEnabled = true
+        xml.isEnabled = true
+        csv.isEnabled = false
+    }
+}
+
+allprojects {
+    // Configures the Jacoco tool version to be the same for all projects that have it applied.
+    pluginManager.withPlugin("jacoco") {
+        // If this project has the plugin applied, configure the tool version.
+        jacoco {
+            toolVersion = "0.8.0"
         }
     }
 }
@@ -122,3 +193,9 @@ fun Project.`bintray`(configure: com.jfrog.bintray.gradle.BintrayExtension.() ->
  */
 fun Project.`publishing`(configure: org.gradle.api.publish.PublishingExtension.() -> Unit = {}) =
     extensions.getByName<org.gradle.api.publish.PublishingExtension>("publishing").apply { configure() }
+
+/**
+ * Retrieves the [java][org.gradle.api.plugins.JavaPluginConvention] project convention.
+ */
+val Project.`java`: org.gradle.api.plugins.JavaPluginConvention
+    get() = convention.getPluginByName("java")
