@@ -1,6 +1,7 @@
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.wrapper.Wrapper
+import org.junit.platform.console.options.Details
 
 buildscript {
     repositories {
@@ -13,6 +14,7 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.1.1")
         classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3")
+        classpath("org.junit.platform:junit-platform-gradle-plugin:1.1.0-M1")
     }
 }
 apply {
@@ -33,6 +35,7 @@ subprojects {
         plugin("kotlin")
         plugin("maven-publish")
         plugin("java-library")
+        plugin("org.junit.platform.gradle.plugin")
     }
 
     val publicationName = "publication-$name"
@@ -58,7 +61,19 @@ subprojects {
     dependencies {
         "compile"(kotlin("stdlib"))
         "compile"(kotlin("reflect"))
-        "testCompile"(create(group = "io.kotlintest", name = "kotlintest", version = "2.0.2"))
+
+        "testCompile"(junitJupiter("junit-jupiter-api"))
+        "testCompile"(junitJupiter("junit-jupiter-params"))
+        "testRuntime"(junitJupiter("junit-jupiter-engine"))
+        "testRuntime"(create(group = "org.junit.platform", name = "junit-platform-launcher", version = "1.1.0-M1"))
+    }
+
+    junitPlatform {
+        details = Details.VERBOSE
+
+        filters {
+            includeClassNamePatterns(".*Test", ".*Tests", ".*Spec")
+        }
     }
 
     val sourceJarTask = task<Jar>("sourceJar") {
@@ -86,6 +101,15 @@ task<Wrapper>("wrapper") {
     gradleVersion = "4.1"
     distributionType = Wrapper.DistributionType.ALL
 }
+
+fun DependencyHandler.junitJupiter(name: String) =
+    create(group = "org.junit.jupiter", name = name, version = "5.1.0-M1")
+
+/**
+ * Configures the [junitPlatform][org.junit.platform.gradle.plugin.JUnitPlatformExtension] project extension.
+ */
+fun Project.`junitPlatform`(configure: org.junit.platform.gradle.plugin.JUnitPlatformExtension.() -> Unit) =
+    extensions.configure("junitPlatform", configure)
 
 /**
  * Retrieves or configures the [bintray][com.jfrog.bintray.gradle.BintrayExtension] project extension.
