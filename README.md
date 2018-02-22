@@ -20,20 +20,43 @@ Many of these problems have been solved by Kotlin using inline functions with `r
 
 In java you can declare a type literal with:
 ```java
-new TypeLiteral<Map<Integer, String>>() {}
+final TypeLiteral<Map<Integer, String>> someLiteral = new TypeLiteral<Map<Integer, String>>() {}
 ```
 In Kotlin this syntax becomes even more verbose requiring more characters to write. 
 ```kotlin
-object : TypeLiteral<Map<Integer, String>>() {}
+val someLiteral = object : TypeLiteral<Map<Integer, String>>() {}
 ```
 This library provides helpers like the one below that is much cleaner to read.
 ```kotlin
-typeLiteral<Map<Int, String>>()
+val someLiteral = typeLiteral<Map<Int, String>>()
 ```
 
 ### Guice Modules
 
-TODO
+Creating a module in Java requires quite a bit of extra boilerplate.
+```java
+public class MyModule extends AbstractModule {
+    @Override
+    void configure() {
+        bind(SomeService.class).to(SomeServiceImpl.class);
+    }
+}
+
+class Main {
+    public static void main(String... args) {
+        final Injector injector = Guice.createInjector(new MyModule());
+    }
+}
+```
+This is the equivalent in Kotlin:
+```kotlin
+fun main(vararg args: String) {
+    val myModule = module {
+        bind(SomeService::class).to(SomeServiceImpl::class)
+    }
+    val injector = Guice.createInjector(myModule)
+}
+```
 
 ## Project Structure
 The intention is to structure this project such that Guice Core and each of it's respective extensions will

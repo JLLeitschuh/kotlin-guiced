@@ -1,6 +1,7 @@
 package org.jlleitschuh.guice.multibindings
 
 import com.google.inject.AbstractModule
+import org.jlleitschuh.guice.module
 import org.junit.jupiter.api.Test
 
 class MultibinderTest {
@@ -12,6 +13,9 @@ class MultibinderTest {
 
     @Test
     fun `should be able to bind an interface`() {
+        module {
+            KotlinMultibinder.newSetBinder<TestInterface>(binder())
+        }
         object : AbstractModule() {
             override fun configure() {
                 KotlinMultibinder.newSetBinder<TestInterface>(binder())
@@ -21,6 +25,9 @@ class MultibinderTest {
 
     @Test
     fun `should be able to bind an interface and an annotation`() {
+        module {
+            KotlinMultibinder.newSetBinder<TestInterface>(binder(), TestAnnotation::class)
+        }
         object : AbstractModule() {
             override fun configure() {
                 KotlinMultibinder.newSetBinder<TestInterface>(binder(), TestAnnotation::class)
