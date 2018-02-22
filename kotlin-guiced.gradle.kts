@@ -12,7 +12,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.1.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${property("kotlin.version")}")
         classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3")
         classpath("org.junit.platform:junit-platform-gradle-plugin:1.1.0-M1")
     }
@@ -59,8 +59,8 @@ subprojects {
     }
 
     dependencies {
-        "compile"(kotlin("stdlib"))
-        "compile"(kotlin("reflect"))
+        "compile"(kotlin(module = "stdlib", version = property("kotlin.version") as String))
+        "compile"(kotlin(module = "reflect", version = property("kotlin.version") as String))
 
         "testCompile"(junitJupiter("junit-jupiter-api"))
         "testCompile"(junitJupiter("junit-jupiter-params"))
@@ -98,7 +98,7 @@ configurations.create(PUBLISHED_CONFIGURATION_NAME)
 
 task<Wrapper>("wrapper") {
     description = "Configure the version of gradle to download and use"
-    gradleVersion = "4.1"
+    gradleVersion = "4.4.1"
     distributionType = Wrapper.DistributionType.ALL
 }
 
