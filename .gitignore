@@ -80,11 +80,12 @@ local.properties
 
 ## File-based project format:
 *.iws
+*.iml
 
 ## Plugin-specific files:
 
 # IntelliJ
-/out/
+*/out/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
