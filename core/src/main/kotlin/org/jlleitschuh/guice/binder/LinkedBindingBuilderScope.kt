@@ -18,7 +18,7 @@ open class LinkedBindingBuilderScope<T : Any>(
      * See the EDSL examples at [com.google.inject.Binder].
      */
     fun to(implementation: KClass<out T>): ScopedBindingBuilderScope =
-        ScopedBindingBuilderScope(to(implementation.java))
+        to(implementation.java)
 
     /**
      * See the EDSL examples at [com.google.inject.Binder].

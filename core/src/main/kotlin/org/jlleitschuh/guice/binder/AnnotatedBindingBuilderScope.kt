@@ -12,19 +12,19 @@ class AnnotatedBindingBuilderScope<T : Any>(
     /**
      * See the EDSL examples at [com.google.inject.Binder].
      */
-    fun annotatedWith(annotationType: KClass<out Annotation>): LinkedBindingBuilder<T> =
+    fun annotatedWith(annotationType: KClass<out Annotation>): LinkedBindingBuilderScope<T> =
         annotatedWith(annotationType.java)
 
     /**
      * See the EDSL examples at [com.google.inject.Binder].
      */
-    override fun annotatedWith(annotationType: Class<out Annotation>): LinkedBindingBuilder<T> =
+    override fun annotatedWith(annotationType: Class<out Annotation>): LinkedBindingBuilderScope<T> =
         LinkedBindingBuilderScope(annotatedBindingBuilder.annotatedWith(annotationType))
 
     /**
      * See the EDSL examples at [com.google.inject.Binder].
      */
-    override fun annotatedWith(annotation: Annotation): LinkedBindingBuilder<T> =
+    override fun annotatedWith(annotation: Annotation): LinkedBindingBuilderScope<T> =
         LinkedBindingBuilderScope(annotatedBindingBuilder.annotatedWith(annotation))
 
 }

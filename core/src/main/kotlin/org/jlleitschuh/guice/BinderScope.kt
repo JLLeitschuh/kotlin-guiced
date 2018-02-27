@@ -3,12 +3,11 @@ package org.jlleitschuh.guice
 import com.google.inject.Binder
 import com.google.inject.Key
 import com.google.inject.TypeLiteral
-import com.google.inject.binder.AnnotatedBindingBuilder
 import org.jlleitschuh.guice.binder.AnnotatedBindingBuilderScope
 import org.jlleitschuh.guice.binder.LinkedBindingBuilderScope
 import kotlin.reflect.KClass
 
-class BinderScope
+open class BinderScope
 internal constructor(private val binder: Binder) : Binder by binder {
 
     /**
@@ -25,7 +24,7 @@ internal constructor(private val binder: Binder) : Binder by binder {
     /**
      * See the EDSL examples at [Binder].
      */
-    override fun <T : Any> bind(key: Key<T>) =
+    override fun <T : Any> bind(key: Key<T>): LinkedBindingBuilderScope<T> =
         LinkedBindingBuilderScope(binder.bind(key))
 
     /**
@@ -39,5 +38,9 @@ internal constructor(private val binder: Binder) : Binder by binder {
      */
     override fun <T : Any> bind(typeLiteral: TypeLiteral<T>): AnnotatedBindingBuilderScope<T> =
         AnnotatedBindingBuilderScope(binder.bind(typeLiteral))
+
+
+    override fun newPrivateBinder(): PrivateBinderScope =
+        PrivateBinderScope(binder.newPrivateBinder())
 
 }
