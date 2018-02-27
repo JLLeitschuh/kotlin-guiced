@@ -58,6 +58,18 @@ fun main(vararg args: String) {
 }
 ```
 
+The library also defines a simple way of declaring private modules:
+```kotlin
+fun main(vararg args: String) {
+    val privateModule = privateModule {
+        bind(SomeService::class).to(SomeServiceImpl::class)
+        expose(SomeService::class)
+    }
+    val injector = Guice.createInjector(privateModule)
+}
+```
+
+
 ## Project Structure
 The intention is to structure this project such that Guice Core and each of it's respective extensions will
 be in their own projects. The reasoning being that a library consumer can choose to depend upon only the Guice 
