@@ -108,7 +108,7 @@ subprojects {
     }
 
     val sourceJarTask = task<Jar>("sourceJar") {
-        from(the<JavaPluginConvention>().sourceSets["main"].allSource)
+        from(java.sourceSets["main"].allSource)
         classifier = "sources"
     }
 
@@ -143,7 +143,7 @@ val jacocoRootReport = task<JacocoReport>("jacocoRootReport") {
 
     subprojects.forEach { testedProject ->
         val sourceSets = testedProject.java.sourceSets
-        this@task.additionalSourceDirs += files(sourceSets["main"].allSource.srcDirs)
+        this@task.additionalSourceDirs = this@task.additionalSourceDirs?.plus(files(sourceSets["main"].allSource.srcDirs))
         this@task.sourceDirectories += files(sourceSets["main"].allSource.srcDirs)
         this@task.classDirectories += files(sourceSets["main"].output)
     }
@@ -169,7 +169,7 @@ configurations.create(PUBLISHED_CONFIGURATION_NAME)
 
 task<Wrapper>("wrapper") {
     description = "Configure the version of gradle to download and use"
-    gradleVersion = "4.4.1"
+    gradleVersion = "4.7"
     distributionType = Wrapper.DistributionType.ALL
 }
 
