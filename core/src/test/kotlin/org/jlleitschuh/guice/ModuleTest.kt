@@ -22,6 +22,16 @@ class ModuleTest {
     }
 
     @Test
+    fun `simple module reified`() {
+        val simpleModule = module {
+            bind<Interface>().to<Implementation>()
+        }
+        val injector = Guice.createInjector(simpleModule)
+        val theInterface = injector.getInstance(key<Interface>())
+        assertTrue(theInterface is Implementation)
+    }
+
+    @Test
     fun `module not using key`() {
         val simpleModule = module {
             bind(Interface::class).to(Implementation::class)

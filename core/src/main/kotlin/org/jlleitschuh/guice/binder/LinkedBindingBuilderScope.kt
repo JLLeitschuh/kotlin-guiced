@@ -3,6 +3,7 @@ package org.jlleitschuh.guice.binder
 import com.google.inject.Key
 import com.google.inject.TypeLiteral
 import com.google.inject.binder.LinkedBindingBuilder
+import org.jlleitschuh.guice.typeLiteral
 import kotlin.reflect.KClass
 
 open class LinkedBindingBuilderScope<T : Any>(
@@ -13,6 +14,12 @@ open class LinkedBindingBuilderScope<T : Any>(
      * The possible confusion of meaning between this `to` and the the one that creates a `Pair` is way too easy
      * a mistake to make.
      */
+
+    /**
+     * See the EDSL examples at [com.google.inject.Binder].
+     */
+    inline fun <reified T2 : T> to() =
+        to(typeLiteral<T2>())
 
     /**
      * See the EDSL examples at [com.google.inject.Binder].
@@ -37,4 +44,16 @@ open class LinkedBindingBuilderScope<T : Any>(
      */
     override fun to(targetKey: Key<out T>): ScopedBindingBuilderScope =
         ScopedBindingBuilderScope(linkedBindingBuilder.to(targetKey))
+
+    /**
+     * See the EDSL examples at [com.google.inject.Binder].
+     */
+    fun toProvider(providerType: KClass<out javax.inject.Provider<out T>>): ScopedBindingBuilderScope =
+        ScopedBindingBuilderScope(linkedBindingBuilder.toProvider(providerType.java))
+
+    /**
+     * See the EDSL examples at [com.google.inject.Binder].
+     */
+    inline fun <reified P : javax.inject.Provider<out T>> toProvider() =
+        toProvider(P::class)
 }

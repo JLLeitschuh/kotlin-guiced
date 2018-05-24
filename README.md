@@ -53,6 +53,8 @@ This is the equivalent in Kotlin:
 fun main(vararg args: String) {
     val myModule = module {
         bind(SomeService::class).to(SomeServiceImpl::class)
+        // Or, even simpler with reified generics
+        bind<SomeService>().to<SomeServiceImpl>()
     }
     val injector = Guice.createInjector(myModule)
 }

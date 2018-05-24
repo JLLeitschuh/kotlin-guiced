@@ -15,6 +15,9 @@ internal constructor(private val binder: Binder) : Binder by binder {
      */
     fun binder() = this
 
+    inline fun <reified T: Any> bind(): AnnotatedBindingBuilderScope<T> =
+        bind(typeLiteral<T>())
+
     /**
      * See the EDSL examples at [Binder].
      */
