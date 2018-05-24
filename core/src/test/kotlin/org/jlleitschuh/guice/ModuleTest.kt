@@ -2,14 +2,20 @@ package org.jlleitschuh.guice
 
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
+import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import javax.inject.Provider
 
 class ModuleTest {
     interface Interface
 
     class Implementation : Interface
+
+    class InterfaceProvider : Provider<Interface> {
+        override fun get() = Implementation()
+    }
 
     @Test
     fun `simple module`() {
@@ -22,7 +28,7 @@ class ModuleTest {
     }
 
     @Test
-    fun `simple module reified`() {
+    fun `simple module reified binding methods`() {
         val simpleModule = module {
             bind<Interface>().to<Implementation>()
         }
@@ -63,4 +69,15 @@ class ModuleTest {
         injector.getInstance(key<Interface>())
     }
 
+    @Test
+    fun `module binding to provider using reified methods`() {
+        val module = module {
+            bind<Interface>().toProvider<InterfaceProvider>()
+        }
+        val injector = Guice.createInjector(module)
+
+        val first = injector.getInstance(key<Interface>())
+        val second = injector.getInstance(key<Interface>())
+        assertNotSame(first, second)
+    }
 }
