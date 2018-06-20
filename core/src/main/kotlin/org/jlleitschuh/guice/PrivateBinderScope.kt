@@ -31,6 +31,9 @@ internal constructor(private val privateBinder: PrivateBinder): BinderScope(priv
     fun expose(type: KClass<*>): AnnotatedElementBuilder =
         expose(type.java)
 
+    inline fun <reified T: Any> expose(): AnnotatedElementBuilder =
+        expose(typeLiteral<T>())
+
     override fun expose(type: TypeLiteral<*>): AnnotatedElementBuilder {
         return privateBinder.expose(type)
     }
