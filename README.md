@@ -64,8 +64,8 @@ The library also defines a simple way of declaring private modules:
 ```kotlin
 fun main(vararg args: String) {
     val privateModule = privateModule {
-        bind(SomeService::class).to(SomeServiceImpl::class)
-        expose(SomeService::class)
+        bind<SomeService>().to<SomeServiceImpl>()
+        expose<SomeService>()
     }
     val injector = Guice.createInjector(privateModule)
 }
