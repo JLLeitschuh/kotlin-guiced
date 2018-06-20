@@ -27,7 +27,7 @@ apply {
 val PUBLISHED_CONFIGURATION_NAME = "published"
 
 allprojects {
-    version = "0.0.3"
+    version = "0.0.4"
     group = "org.jlleitschuh.guice"
 
     repositories {
