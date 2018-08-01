@@ -55,5 +55,5 @@ open class LinkedBindingBuilderScope<T : Any>(
      * See the EDSL examples at [com.google.inject.Binder].
      */
     inline fun <reified P : javax.inject.Provider<out T>> toProvider() =
-        toProvider(P::class)
+        toProvider(typeLiteral<P>())
 }

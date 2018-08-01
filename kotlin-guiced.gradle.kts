@@ -13,7 +13,7 @@ buildscript {
     }
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${property("kotlin.version")}")
-        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3")
+        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4")
         classpath("org.junit.platform:junit-platform-gradle-plugin:1.1.0-M1")
     }
 }
@@ -160,7 +160,7 @@ allprojects {
     pluginManager.withPlugin("jacoco") {
         // If this project has the plugin applied, configure the tool version.
         jacoco {
-            toolVersion = "0.8.0"
+            toolVersion = "0.8.1"
         }
     }
 }
