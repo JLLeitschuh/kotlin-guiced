@@ -167,9 +167,9 @@ allprojects {
 
 configurations.create(PUBLISHED_CONFIGURATION_NAME)
 
-task<Wrapper>("wrapper") {
+tasks.withType<Wrapper>().configureEach {
     description = "Configure the version of gradle to download and use"
-    gradleVersion = "4.7"
+    gradleVersion = "4.9"
     distributionType = Wrapper.DistributionType.ALL
 }
 
