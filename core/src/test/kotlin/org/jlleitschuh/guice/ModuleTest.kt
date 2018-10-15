@@ -6,16 +6,8 @@ import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import javax.inject.Provider
 
 class ModuleTest {
-    interface Interface
-
-    class Implementation : Interface
-
-    class InterfaceProvider : Provider<Interface> {
-        override fun get() = Implementation()
-    }
 
     @Test
     fun `simple module`() {
