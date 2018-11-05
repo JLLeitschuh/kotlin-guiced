@@ -1,7 +1,8 @@
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.junit.platform.console.options.Details
 
 buildscript {
     repositories {
@@ -14,10 +15,10 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${property("kotlin.version")}")
         classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4")
-        classpath("org.junit.platform:junit-platform-gradle-plugin:1.1.0-M1")
     }
 }
 plugins {
+    `lifecycle-base`
     jacoco
 }
 apply {
@@ -35,7 +36,7 @@ allprojects {
     }
 }
 
-val jacocoTestResultTaskName = "jacocoJunit5TestReport"
+val jacocoTestResultTaskName = "jacocoTestReport"
 
 subprojects {
     apply {
@@ -43,7 +44,6 @@ subprojects {
         plugin("kotlin")
         plugin("maven-publish")
         plugin("java-library")
-        plugin("org.junit.platform.gradle.plugin")
         plugin("jacoco")
     }
 
@@ -70,36 +70,39 @@ subprojects {
         "testCompile"(junitJupiter("junit-jupiter-api"))
         "testCompile"(junitJupiter("junit-jupiter-params"))
         "testRuntime"(junitJupiter("junit-jupiter-engine"))
-        "testRuntime"(create(group = "org.junit.platform", name = "junit-platform-launcher", version = "1.1.0-M1"))
+        "testRuntime"(create(group = "org.junit.platform", name = "junit-platform-launcher", version = "1.3.1"))
     }
 
-    junitPlatform {
-        details = Details.VERBOSE
-
-        filters {
-            includeClassNamePatterns(".*Test", ".*Tests", ".*Spec")
+    tasks.withType<Test>().configureEach {
+        extensions.configure(typeOf<JacocoTaskExtension>()) {
+            /*
+             * Fix for Jacoco breaking Build Cache support.
+             * https://github.com/gradle/gradle/issues/5269
+             */
+            isAppend = false
         }
+
+        useJUnitPlatform {
+            filter {
+                includeTestsMatching("*Test")
+                includeTestsMatching("*Tests")
+                includeTestsMatching("*Spec")
+            }
+        }
+
+        testLogging {
+            events(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.STARTED)
+            displayGranularity = 0
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+            exceptionFormat = TestExceptionFormat.FULL
+        }
+
+        reports.junitXml.destination = file("${rootProject.buildDir}/test-results/${project.name}")
     }
 
-    // Below, configure jacoco code coverage on all Junit 5 tests.
-    val junitPlatformTest: JavaExec by tasks
-
-    jacoco {
-        applyTo(junitPlatformTest)
-    }
-
-    val sourceSets = java.sourceSets
-
-    task<JacocoReport>(jacocoTestResultTaskName) {
-        group = LifecycleBasePlugin.VERIFICATION_GROUP
-        description = "Generates code coverage report for the ${junitPlatformTest.name} task."
-
-        executionData(junitPlatformTest)
-        dependsOn(junitPlatformTest)
-
-        sourceSets(sourceSets["main"])
-        sourceDirectories = files(sourceSets["main"].allSource.srcDirs)
-        classDirectories = files(sourceSets["main"].output)
+    tasks.withType<JacocoReport>().configureEach {
         reports {
             html.isEnabled = true
             xml.isEnabled = true
@@ -125,12 +128,20 @@ subprojects {
     }
 }
 
-val jacocoRootReport = task<JacocoReport>("jacocoRootReport") {
+val jacocoRootReport = tasks.register("jacocoRootReport", JacocoReport::class.java) {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Generates code coverage report for all sub-projects."
 
     val jacocoReportTasks =
-        subprojects.map { it.tasks[jacocoTestResultTaskName] as JacocoReport }
+        subprojects
+            .asSequence()
+            .filter {
+                // Filter out source sets that don't have tests in them
+                // Otherwise, Jacoco tries to generate coverage data for tests that don't exist
+                !it.java.sourceSets["test"].allSource.isEmpty
+            }
+            .map { it.tasks[jacocoTestResultTaskName] as JacocoReport }
+            .toList()
     dependsOn(jacocoReportTasks)
 
     val allExecutionData = jacocoReportTasks.map { it.executionData }
@@ -143,9 +154,10 @@ val jacocoRootReport = task<JacocoReport>("jacocoRootReport") {
 
     subprojects.forEach { testedProject ->
         val sourceSets = testedProject.java.sourceSets
-        this@task.additionalSourceDirs = this@task.additionalSourceDirs?.plus(files(sourceSets["main"].allSource.srcDirs))
-        this@task.sourceDirectories += files(sourceSets["main"].allSource.srcDirs)
-        this@task.classDirectories += files(sourceSets["main"].output)
+        this@register.additionalSourceDirs =
+            this@register.additionalSourceDirs?.plus(files(sourceSets["main"].allSource.srcDirs))
+        this@register.sourceDirectories += files(sourceSets["main"].allSource.srcDirs)
+        this@register.classDirectories += files(sourceSets["main"].output)
     }
 
     reports {
@@ -160,12 +172,16 @@ allprojects {
     pluginManager.withPlugin("jacoco") {
         // If this project has the plugin applied, configure the tool version.
         jacoco {
-            toolVersion = "0.8.1"
+            toolVersion = "0.8.2"
         }
     }
 }
 
 configurations.create(PUBLISHED_CONFIGURATION_NAME)
+
+tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME).configure {
+    dependsOn(jacocoRootReport)
+}
 
 tasks.withType<Wrapper>().configureEach {
     description = "Configure the version of gradle to download and use"
@@ -174,13 +190,7 @@ tasks.withType<Wrapper>().configureEach {
 }
 
 fun DependencyHandler.junitJupiter(name: String) =
-    create(group = "org.junit.jupiter", name = name, version = "5.1.0-M1")
-
-/**
- * Configures the [junitPlatform][org.junit.platform.gradle.plugin.JUnitPlatformExtension] project extension.
- */
-fun Project.`junitPlatform`(configure: org.junit.platform.gradle.plugin.JUnitPlatformExtension.() -> Unit) =
-    extensions.configure("junitPlatform", configure)
+    create(group = "org.junit.jupiter", name = name, version = "5.3.1")
 
 /**
  * Retrieves or configures the [bintray][com.jfrog.bintray.gradle.BintrayExtension] project extension.
