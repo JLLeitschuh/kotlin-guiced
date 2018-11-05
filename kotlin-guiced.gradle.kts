@@ -3,6 +3,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.wrapper.Wrapper
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     repositories {
@@ -69,8 +70,24 @@ subprojects {
 
         "testCompile"(junitJupiter("junit-jupiter-api"))
         "testCompile"(junitJupiter("junit-jupiter-params"))
+        "testCompile"(group = "com.natpryce", name = "hamkrest", version = "1.5.0.0")
         "testRuntime"(junitJupiter("junit-jupiter-engine"))
         "testRuntime"(create(group = "org.junit.platform", name = "junit-platform-launcher", version = "1.3.1"))
+    }
+
+    tasks.withType<KotlinCompile>().configureEach {
+        // Kotlin incremental compilation is enabled by default
+        kotlinOptions {
+            jvmTarget = "1.8"
+
+            freeCompilerArgs += "-Xprogressive"
+
+            /*
+             * Enables strict null checking when calling java methods using jsr305 annotations.
+             * https://kotlinlang.org/docs/reference/java-interop.html#jsr-305-support
+             */
+            freeCompilerArgs += "-Xjsr305=strict"
+        }
     }
 
     tasks.withType<Test>().configureEach {

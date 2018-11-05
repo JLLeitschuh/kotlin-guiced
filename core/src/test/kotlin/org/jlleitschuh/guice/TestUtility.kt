@@ -9,3 +9,7 @@ class Implementation : Interface
 class InterfaceProvider : Provider<Interface> {
     override fun get() = Implementation()
 }
+
+class InterfaceProvider2 : Provider<Interface> {
+    override fun get() = Implementation()
+}
