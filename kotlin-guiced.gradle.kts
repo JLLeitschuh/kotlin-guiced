@@ -169,7 +169,7 @@ configurations.create(PUBLISHED_CONFIGURATION_NAME)
 
 tasks.withType<Wrapper>().configureEach {
     description = "Configure the version of gradle to download and use"
-    gradleVersion = "4.9"
+    gradleVersion = "4.10.2"
     distributionType = Wrapper.DistributionType.ALL
 }
 
