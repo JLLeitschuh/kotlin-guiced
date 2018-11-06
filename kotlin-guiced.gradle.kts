@@ -80,8 +80,7 @@ subprojects {
         kotlinOptions {
             jvmTarget = "1.8"
 
-            // https://kotlinlang.org/docs/reference/whatsnew13.html#progressive-mode
-            freeCompilerArgs += "-progressive"
+            freeCompilerArgs += "-Xprogressive"
 
             /*
              * Enables strict null checking when calling java methods using jsr305 annotations.
