@@ -1,11 +1,16 @@
 package org.jlleitschuh.guice
 
 import com.google.inject.AbstractModule
+import com.google.inject.CreationException
 import com.google.inject.Guice
+import com.natpryce.hamkrest.and
+import com.natpryce.hamkrest.assertion.assertThat
+import com.natpryce.hamkrest.containsSubstring
 import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class ModuleTest {
 
@@ -71,5 +76,23 @@ class ModuleTest {
         val first = injector.getInstance(key<Interface>())
         val second = injector.getInstance(key<Interface>())
         assertNotSame(first, second)
+    }
+
+    @Test
+    fun `module binding exceptions provide meaningful exceptions`() {
+        val module = module {
+            bind<Interface>().toProvider<InterfaceProvider>()
+            bind<Interface>().toProvider<InterfaceProvider2>()
+        }
+        val exception = assertThrows<CreationException> {
+            Guice.createInjector(module)
+        }
+
+        val expectedString1 =
+            "1) A binding to org.jlleitschuh.guice.Interface was already configured at org.jlleitschuh.guice.ModuleTest${'$'}module binding exceptions provide meaningful exceptions${'$'}module${'$'}1.invoke(ModuleTest.kt:"
+        val expectedString2 =
+            "at org.jlleitschuh.guice.ModuleTest${'$'}module binding exceptions provide meaningful exceptions${'$'}module${'$'}1.invoke(ModuleTest.kt:"
+
+        assertThat(exception.message!!, containsSubstring(expectedString1) and containsSubstring(expectedString2))
     }
 }
