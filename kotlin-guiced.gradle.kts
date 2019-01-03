@@ -145,9 +145,9 @@ subprojects {
     }
 }
 
-val jacocoRootReport = tasks.register("jacocoRootReport", JacocoReport::class.java) {
+val jacocoRootReport = tasks.register<JacocoReport>("jacocoRootReport") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Generates code coverage report for all sub-projects."
+    description = "Generates an HTML code coverage report for all sub-projects."
 
     val jacocoReportTasks =
         subprojects
@@ -157,24 +157,17 @@ val jacocoRootReport = tasks.register("jacocoRootReport", JacocoReport::class.ja
                 // Otherwise, Jacoco tries to generate coverage data for tests that don't exist
                 !it.java.sourceSets["test"].allSource.isEmpty
             }
-            .map { it.tasks[jacocoTestResultTaskName] as JacocoReport }
+            .map { it.tasks["jacocoTestReport"] as JacocoReport }
             .toList()
     dependsOn(jacocoReportTasks)
 
-    val allExecutionData = jacocoReportTasks.map { it.executionData }
-    executionData(*allExecutionData.toTypedArray())
-
-    // Pre-initialize these to empty collections to prevent NPE on += call below.
-    additionalSourceDirs = files()
-    sourceDirectories = files()
-    classDirectories = files()
+    executionData.setFrom(Callable { jacocoReportTasks.map { it.executionData } })
 
     subprojects.forEach { testedProject ->
         val sourceSets = testedProject.java.sourceSets
-        this@register.additionalSourceDirs =
-            this@register.additionalSourceDirs?.plus(files(sourceSets["main"].allSource.srcDirs))
-        this@register.sourceDirectories += files(sourceSets["main"].allSource.srcDirs)
-        this@register.classDirectories += files(sourceSets["main"].output)
+        val mainSourceSet = sourceSets["main"]
+        this@register.additionalSourceDirs(mainSourceSet.allSource.sourceDirectories)
+        this@register.additionalClassDirs(mainSourceSet.output)
     }
 
     reports {
@@ -202,7 +195,7 @@ tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME).configure {
 
 tasks.withType<Wrapper>().configureEach {
     description = "Configure the version of gradle to download and use"
-    gradleVersion = "4.10.2"
+    gradleVersion = "5.1"
     distributionType = Wrapper.DistributionType.ALL
 }
 
